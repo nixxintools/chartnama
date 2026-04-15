@@ -41,6 +41,7 @@ const palette = ['#f4b400', '#e53935', '#cfcfcf', '#111111', '#f08f76', '#7286d3
 const svgWidth = 960
 const svgHeight = 620
 const chartFontFamily = 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+const logoFontFamily = '"Trebuchet MS", Trebuchet, Arial, sans-serif'
 const frame: PlotFrame = {
   width: svgWidth,
   height: svgHeight,
@@ -84,6 +85,14 @@ const textStyles = {
     fontSize: 13,
     fontWeight: 700,
     textAnchor: 'start' as const,
+  },
+  logo: {
+    fill: '#e53935',
+    fontFamily: logoFontFamily,
+    fontSize: 18,
+    fontWeight: 700,
+    letterSpacing: 1.1,
+    textAnchor: 'end' as const,
   },
 }
 
@@ -645,6 +654,9 @@ export function ChartStage({ dataset, config }: ChartStageProps) {
       {config.chartType === 'multi-line' && renderLine(dataset, config, true)}
       {config.chartType === 'pie' && renderPie(primaryPoints)}
       {config.chartType === 'area-stacked' && renderArea(dataset, config)}
+      <text x={svgWidth - 28} y={svgHeight - 22} className="chart-logo" {...textStyles.logo}>
+        MEDIANAMA
+      </text>
     </svg>
   )
 }
