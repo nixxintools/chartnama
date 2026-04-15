@@ -40,6 +40,7 @@ type StackedRow = Record<string, number | string>
 const palette = ['#f4b400', '#e53935', '#cfcfcf', '#111111', '#f08f76', '#7286d3']
 const svgWidth = 960
 const svgHeight = 620
+const chartFontFamily = 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 const frame: PlotFrame = {
   width: svgWidth,
   height: svgHeight,
@@ -47,6 +48,43 @@ const frame: PlotFrame = {
   right: 72,
   bottom: 88,
   left: 72,
+}
+const textStyles = {
+  title: {
+    fill: '#111111',
+    fontFamily: chartFontFamily,
+    fontSize: 34,
+    fontWeight: 800,
+    textAnchor: 'middle' as const,
+  },
+  subtitle: {
+    fill: '#62594d',
+    fontFamily: chartFontFamily,
+    fontSize: 18,
+    fontWeight: 500,
+    textAnchor: 'middle' as const,
+  },
+  valueLabel: {
+    fill: '#111111',
+    fontFamily: chartFontFamily,
+    fontSize: 13,
+    fontWeight: 700,
+    textAnchor: 'middle' as const,
+  },
+  axisLabel: {
+    fill: '#111111',
+    fontFamily: chartFontFamily,
+    fontSize: 12,
+    fontWeight: 700,
+    textAnchor: 'middle' as const,
+  },
+  seriesLabel: {
+    fill: '#111111',
+    fontFamily: chartFontFamily,
+    fontSize: 13,
+    fontWeight: 700,
+    textAnchor: 'start' as const,
+  },
 }
 
 function clampLabelY(y: number): number {
@@ -139,10 +177,20 @@ function renderBarSingle(points: ChartPoint[]) {
         return (
           <g key={point.label}>
             <rect x={x} y={y} width={barWidth} height={height} fill="#f4b400" />
-            <text x={x + barWidth / 2} y={clampLabelY(labelY)} className="chart-value-label">
+            <text
+              x={x + barWidth / 2}
+              y={clampLabelY(labelY)}
+              className="chart-value-label"
+              {...textStyles.valueLabel}
+            >
               {formatValue(point.value)}
             </text>
-            <text x={x + barWidth / 2} y={frame.height - frame.bottom + 32} className="chart-axis-label">
+            <text
+              x={x + barWidth / 2}
+              y={frame.height - frame.bottom + 32}
+              className="chart-axis-label"
+              {...textStyles.axisLabel}
+            >
               {point.label}
             </text>
           </g>
@@ -208,6 +256,7 @@ function renderBarDual(dataset: Dataset, config: ChartConfig) {
                     x={x + innerScale.bandwidth() / 2}
                     y={clampLabelY(value >= 0 ? y - 12 : y + height + 20)}
                     className="chart-value-label"
+                    {...textStyles.valueLabel}
                   >
                     {formatValue(value)}
                   </text>
@@ -218,6 +267,7 @@ function renderBarDual(dataset: Dataset, config: ChartConfig) {
               x={bandX + xScale.bandwidth() / 2}
               y={frame.height - frame.bottom + 32}
               className="chart-axis-label"
+              {...textStyles.axisLabel}
             >
               {String(row[config.xKey])}
             </text>
@@ -297,10 +347,20 @@ function renderStackedBar(dataset: Dataset, config: ChartConfig) {
 
         return (
           <g key={label}>
-            <text x={x + xScale.bandwidth() / 2} y={yScale(total) - 12} className="chart-value-label">
+            <text
+              x={x + xScale.bandwidth() / 2}
+              y={yScale(total) - 12}
+              className="chart-value-label"
+              {...textStyles.valueLabel}
+            >
               {formatValue(total)}
             </text>
-            <text x={x + xScale.bandwidth() / 2} y={frame.height - frame.bottom + 32} className="chart-axis-label">
+            <text
+              x={x + xScale.bandwidth() / 2}
+              y={frame.height - frame.bottom + 32}
+              className="chart-axis-label"
+              {...textStyles.axisLabel}
+            >
               {label}
             </text>
           </g>
@@ -375,11 +435,16 @@ function renderLine(dataset: Dataset, config: ChartConfig, multi = false) {
               return (
                 <g key={`${key}-${labels[index]}`}>
                   <circle cx={x} cy={y} r="7" fill="#ffffff" stroke={stroke} strokeWidth="3" />
-                  <text x={x} y={y - 14} className="chart-value-label">
+                  <text x={x} y={y - 14} className="chart-value-label" {...textStyles.valueLabel}>
                     {formatValue(value)}
                   </text>
                   {!multi && (
-                    <text x={x} y={frame.height - frame.bottom + 32} className="chart-axis-label">
+                    <text
+                      x={x}
+                      y={frame.height - frame.bottom + 32}
+                      className="chart-axis-label"
+                      {...textStyles.axisLabel}
+                    >
                       {labels[index]}
                     </text>
                   )}
@@ -391,6 +456,7 @@ function renderLine(dataset: Dataset, config: ChartConfig, multi = false) {
                 x={frame.width - frame.right + 8}
                 y={yScale(coerceNumber(rows.at(-1)?.[key]) ?? 0)}
                 className="chart-series-label"
+                {...textStyles.seriesLabel}
                 fill={stroke}
               >
                 {key}
@@ -401,7 +467,13 @@ function renderLine(dataset: Dataset, config: ChartConfig, multi = false) {
       })}
       {multi &&
         labels.map((label, index) => (
-          <text key={label} x={getX(index)} y={frame.height - frame.bottom + 32} className="chart-axis-label">
+          <text
+            key={label}
+            x={getX(index)}
+            y={frame.height - frame.bottom + 32}
+            className="chart-axis-label"
+            {...textStyles.axisLabel}
+          >
             {label}
           </text>
         ))}
@@ -424,7 +496,9 @@ function renderPie(points: ChartPoint[]) {
     <g transform={`translate(${centerX}, ${centerY})`}>
       {pieGenerator(points).map((slice, index) => {
         const [labelX, labelY] = labelArc.centroid(slice)
-        const anchor = labelX >= 0 ? 'start' : 'end'
+        const anchor: 'start' | 'end' = labelX >= 0 ? 'start' : 'end'
+        const pieAxisLabelStyle = { ...textStyles.axisLabel, textAnchor: anchor }
+        const pieValueLabelStyle = { ...textStyles.valueLabel, textAnchor: anchor }
 
         return (
           <g key={slice.data.label}>
@@ -435,14 +509,19 @@ function renderPie(points: ChartPoint[]) {
               stroke="#111111"
               strokeWidth="1.2"
             />
-            <text x={labelX + (labelX >= 0 ? 10 : -10)} y={labelY - 4} textAnchor={anchor} className="chart-axis-label">
+            <text
+              x={labelX + (labelX >= 0 ? 10 : -10)}
+              y={labelY - 4}
+              className="chart-axis-label"
+              {...pieAxisLabelStyle}
+            >
               {slice.data.label}
             </text>
             <text
               x={labelX + (labelX >= 0 ? 10 : -10)}
               y={labelY + 16}
-              textAnchor={anchor}
               className="chart-value-label"
+              {...pieValueLabelStyle}
             >
               {formatValue(slice.data.value)}
             </text>
@@ -510,6 +589,7 @@ function renderArea(dataset: Dataset, config: ChartConfig) {
             x={frame.width - frame.right + 8}
             y={yScale(layer.at(-1)?.[1] ?? 0)}
             className="chart-series-label"
+            {...textStyles.seriesLabel}
             fill={palette[index % palette.length]}
           >
             {layer.key}
@@ -522,6 +602,7 @@ function renderArea(dataset: Dataset, config: ChartConfig) {
           x={xScale(timeline[index])}
           y={frame.height - frame.bottom + 32}
           className="chart-axis-label"
+          {...textStyles.axisLabel}
         >
           {String(row[config.xKey])}
         </text>
@@ -551,10 +632,10 @@ export function ChartStage({ dataset, config }: ChartStageProps) {
       aria-label={`${config.title || 'ChartNama chart'} rendered as ${config.chartType}`}
     >
       <rect width={svgWidth} height={svgHeight} fill="#ffffff" rx="32" />
-      <text x={svgWidth / 2} y="58" className="chart-title">
+      <text x={svgWidth / 2} y="58" className="chart-title" {...textStyles.title}>
         {config.title || 'ChartNama'}
       </text>
-      <text x={svgWidth / 2} y="86" className="chart-subtitle">
+      <text x={svgWidth / 2} y="86" className="chart-subtitle" {...textStyles.subtitle}>
         {config.subtitle || 'Publication-grade chart preview'}
       </text>
       {config.chartType === 'bar-single' && renderBarSingle(primaryPoints)}
