@@ -89,7 +89,7 @@ const textStyles = {
   logo: {
     fill: '#e53935',
     fontFamily: logoFontFamily,
-    fontSize: 34,
+    fontSize: 22,
     fontWeight: 700,
     letterSpacing: 0.8,
     textAnchor: 'end' as const,
