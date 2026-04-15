@@ -155,9 +155,9 @@ export function formatValue(value: number): string {
 }
 
 export function buildSampleDataset(): Dataset {
-  return parseCsvText(`Quarter,Revenue,Profit,Costs
-Q1,22,8,14
-Q2,28,10,18
-Q3,34,13,21
-Q4,42,16,26`)
+  return parseCsvText(`Category,Metric A,Metric B,Metric C
+Alpha,22,14,9
+Beta,28,19,12
+Gamma,34,21,15
+Delta,42,25,18`)
 }

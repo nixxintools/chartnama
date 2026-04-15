@@ -24,9 +24,11 @@
 .hero-copy,
 .support-copy,
 .series-heading p,
+.series-help,
 .status-block span,
 .chart-option-copy,
-.selector-footnote p {
+.selector-footnote p,
+.selector-explainer {
   margin: 0;
   color: #62594d;
 }
@@ -334,6 +336,12 @@ th {
   line-height: 1.5;
   text-align: right;
   color: #111111;
+}
+
+.series-help,
+.selector-explainer {
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .chart-section {

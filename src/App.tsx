@@ -12,11 +12,11 @@ import {
 } from './data-utils'
 import type { ChartConfig, ChartType, Dataset } from './types'
 
-const sampleCsv = `Quarter,Revenue,Profit,Costs
-Q1,22,8,14
-Q2,28,10,18
-Q3,34,13,21
-Q4,42,16,26`
+const sampleCsv = `Category,Metric A,Metric B,Metric C
+Alpha,22,14,9
+Beta,28,19,12
+Gamma,34,21,15
+Delta,42,25,18`
 
 const sampleJson = JSON.stringify(buildSampleDataset(), null, 2)
 
@@ -107,6 +107,23 @@ function getChartConstraintCopy(chartType: ChartType): string {
   return `${rule.min}-${rule.max} numeric series`
 }
 
+function getChartConstraintHint(chartType: ChartType): string {
+  switch (chartType) {
+    case 'bar-single':
+    case 'line':
+    case 'pie':
+      return 'This chart uses one numeric column at a time.'
+    case 'bar-dual':
+      return 'This chart compares exactly two numeric columns.'
+    case 'multi-line':
+    case 'stacked-bar':
+    case 'area-stacked':
+      return 'This chart can combine several numeric columns from the same dataset.'
+    default:
+      return 'Use any numeric columns from your dataset.'
+  }
+}
+
 function App() {
   const sampleDataset = buildSampleDataset()
   const sampleNumericColumns = getNumericColumns(sampleDataset)
@@ -114,20 +131,20 @@ function App() {
   const [inputMode, setInputMode] = useState<InputMode>('paste')
   const [rawInput, setRawInput] = useState(sampleCsv)
   const [dataset, setDataset] = useState<Dataset>(sampleDataset)
-  const [title, setTitle] = useState('Quarterly Performance')
-  const [subtitle, setSubtitle] = useState('Paste data, map fields, and export publication-grade PNG.')
+  const [title, setTitle] = useState('Sample Comparison')
+  const [subtitle, setSubtitle] = useState('Any numeric columns work. The selected chart type controls how many series are shown.')
   const [xKey, setXKey] = useState(sampleDataset.columns[0] ?? '')
-  const [yKeys, setYKeys] = useState<string[]>(sampleNumericColumns.slice(0, 1))
-  const [chartType, setChartType] = useState<ChartType>('bar-single')
-  const [status, setStatus] = useState('Sample data loaded. Replace it with CSV or JSON when ready.')
+  const [yKeys, setYKeys] = useState<string[]>(sampleNumericColumns.slice(0, 3))
+  const [chartType, setChartType] = useState<ChartType>('multi-line')
+  const [status, setStatus] = useState('Generic sample data loaded. Replace it with your own CSV or JSON when ready.')
   const [error, setError] = useState('')
-  const [sourceLabel, setSourceLabel] = useState('Sample CSV')
+  const [sourceLabel, setSourceLabel] = useState('Sample dataset')
   const [renderedConfig, setRenderedConfig] = useState<ChartConfig>({
-    title: 'Quarterly Performance',
-    subtitle: 'Paste data, map fields, and export publication-grade PNG.',
-    chartType: 'bar-single',
+    title: 'Sample Comparison',
+    subtitle: 'Any numeric columns work. The selected chart type controls how many series are shown.',
+    chartType: 'multi-line',
     xKey: sampleDataset.columns[0] ?? '',
-    yKeys: sampleNumericColumns.slice(0, 1),
+    yKeys: sampleNumericColumns.slice(0, 3),
   })
 
   const chartRef = useRef<HTMLDivElement | null>(null)
@@ -327,10 +344,10 @@ function App() {
                   onClick={() => {
                     setRawInput(sampleCsv)
                     setInputMode('paste')
-                    applyDataset(buildSampleDataset(), 'Sample CSV', sampleCsv)
+                    applyDataset(buildSampleDataset(), 'Sample dataset', sampleCsv)
                   }}
                 >
-                  Load sample CSV
+                  Load sample data
                 </button>
               </div>
             </div>
@@ -364,10 +381,10 @@ function App() {
                   onClick={() => {
                     setInputMode('upload-json')
                     setRawInput(sampleJson)
-                    applyDataset(buildSampleDataset(), 'Sample JSON', sampleJson)
+                    applyDataset(buildSampleDataset(), 'Sample dataset', sampleJson)
                   }}
                 >
-                  Use sample JSON
+                  Use sample data
                 </button>
                 <button
                   type="button"
@@ -454,6 +471,9 @@ function App() {
                 <p>{getChartConstraintCopy(chartType)}</p>
               </div>
             </div>
+            <p className="series-help">
+              Any numeric columns in your dataset can be charted here. {getChartConstraintHint(chartType)}
+            </p>
 
             {numericColumns.length ? (
               <div className="series-list">
@@ -508,6 +528,9 @@ function App() {
             <p>Current series selection</p>
             <strong>{yKeys.map((column) => `${column}${numericColumns.includes(column) ? '' : ' (missing)'}`).join(', ') || 'None selected'}</strong>
           </div>
+          <p className="selector-explainer">
+            The series limit changes with the chart type. Single bar, line, and pie use one series; dual bar uses two; multi-line and stacked charts can use several.
+          </p>
         </article>
       </section>
 
