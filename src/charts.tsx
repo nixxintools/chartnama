@@ -138,7 +138,7 @@ function renderBarSingle(points: ChartPoint[]) {
 
         return (
           <g key={point.label}>
-            <rect x={x} y={y} width={barWidth} height={height} rx={10} fill="#f4b400" />
+            <rect x={x} y={y} width={barWidth} height={height} fill="#f4b400" />
             <text x={x + barWidth / 2} y={clampLabelY(labelY)} className="chart-value-label">
               {formatValue(point.value)}
             </text>
@@ -202,7 +202,6 @@ function renderBarDual(dataset: Dataset, config: ChartConfig) {
                     y={y}
                     width={innerScale.bandwidth()}
                     height={height}
-                    rx={10}
                     fill={palette[index]}
                   />
                   <text
@@ -285,7 +284,6 @@ function renderStackedBar(dataset: Dataset, config: ChartConfig) {
                 y={y}
                 width={xScale.bandwidth()}
                 height={height}
-                rx={layerIndex === layers.length - 1 ? 10 : 0}
                 fill={palette[(layerIndex + 1) % palette.length]}
               />
             )
