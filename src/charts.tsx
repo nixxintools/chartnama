@@ -89,9 +89,9 @@ const textStyles = {
   logo: {
     fill: '#e53935',
     fontFamily: logoFontFamily,
-    fontSize: 18,
+    fontSize: 34,
     fontWeight: 700,
-    letterSpacing: 1.1,
+    letterSpacing: 0.8,
     textAnchor: 'end' as const,
   },
 }
@@ -654,7 +654,7 @@ export function ChartStage({ dataset, config }: ChartStageProps) {
       {config.chartType === 'multi-line' && renderLine(dataset, config, true)}
       {config.chartType === 'pie' && renderPie(primaryPoints)}
       {config.chartType === 'area-stacked' && renderArea(dataset, config)}
-      <text x={svgWidth - 28} y={svgHeight - 22} className="chart-logo" {...textStyles.logo}>
+      <text x={svgWidth - 28} y="58" className="chart-logo" {...textStyles.logo}>
         MEDIANAMA
       </text>
     </svg>
