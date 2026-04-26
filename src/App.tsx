@@ -16,9 +16,13 @@ import type {
   ChartType,
   ComparisonRow,
   Dataset,
+  DecisionBranch,
   GlossaryItem,
+  ImpactCard,
   InfoMeta,
   InfoTemplate,
+  OptionCard,
+  OverlapZone,
   ProcessStep,
   TimelineItem,
   WorkspaceMode,
@@ -51,6 +55,28 @@ const listSample = `Intermediary | A platform or service that transmits or hosts
 Significant platform | A service that crosses a policy-defined scale threshold.
 Due diligence | The operational steps required to remain compliant.
 Safe harbour | A liability protection that can weaken if obligations are not met.`
+
+const overlapSample = `left | Platforms | Platform operators want fewer compliance triggers and broader exemptions.
+overlap | Shared concerns | Both sides agree that ambiguous wording will create implementation uncertainty.
+right | Regulators | Regulators want stronger disclosures, traceability, and enforceable timelines.`
+
+const beforeAfterSample = `Scope | Covers a broad class of digital services | Applies only to services crossing defined thresholds
+Disclosure cadence | Annual filing | Quarterly filing with incident reporting
+User grievance timelines | No fixed deadline | Mandatory response window with escalation path
+Penalty model | General enforcement | Specific penalties tied to repeated non-compliance`
+
+const optionsSample = `Full licensing regime | Strong regulatory oversight with heavier compliance duties | Higher entry barriers for smaller firms
+Light-touch disclosure model | Minimal licensing with transparency requirements | Faster rollout but weaker enforcement leverage
+Threshold-based hybrid | Strict rules only for larger players with baseline rules for the rest | Balances compliance burden with scale-based risk`
+
+const impactSample = `Citizens | More formal grievance channels and clearer disclosures | Better rights visibility but potentially more identity-linked compliance
+Startups | New reporting and process obligations | Higher operating overhead and greater need for policy counsel
+Imports | Additional documentation or platform accountability checks | Slower market entry for some categories until compliance is clearer
+Platforms | Tighter audit trail and response commitments | More operational process, tooling, and legal review`
+
+const decisionTreeSample = `Does the service cross the threshold? | It falls into the higher-compliance bucket with additional filings. | It stays under the lighter baseline rules.
+Does it host user-generated content? | Moderation, takedown, and grievance rules become central. | The main obligations shift to transactional or disclosure rules.
+Is there a regulator order? | The platform must preserve records and respond within the defined timeline. | Standard retention and disclosure rules continue to apply.`
 
 const chartOptions: Array<{
   value: ChartType
@@ -118,6 +144,31 @@ const infoTemplateOptions: Array<{
     value: 'list',
     label: 'List / Glossary',
     description: 'Scannable cards for terms, facts, and issue explainers.',
+  },
+  {
+    value: 'overlap',
+    label: 'Venn / Overlap',
+    description: 'Shared-versus-exclusive interests, obligations, or claims.',
+  },
+  {
+    value: 'before-after',
+    label: 'Before / After',
+    description: 'Old-versus-new rules, drafts, products, or outcomes.',
+  },
+  {
+    value: 'options',
+    label: 'Options / Alternatives',
+    description: 'Competing choices with tradeoffs and implications.',
+  },
+  {
+    value: 'impact',
+    label: 'Impact On',
+    description: 'Stakeholder-by-stakeholder impact across citizens, startups, imports, and more.',
+  },
+  {
+    value: 'decision-tree',
+    label: 'Decision Tree',
+    description: 'Conditional reader guidance when outcomes depend on yes/no branches.',
   },
   {
     value: 'statistical',
@@ -243,6 +294,46 @@ function parseGlossary(raw: string): GlossaryItem[] {
     }))
 }
 
+function parseOverlap(raw: string): OverlapZone[] {
+  return splitStructuredLines(raw)
+    .filter((parts) => parts.length >= 3)
+    .map(([zone, title, detail]) => ({
+      zone,
+      title,
+      detail,
+    }))
+}
+
+function parseOptions(raw: string): OptionCard[] {
+  return splitStructuredLines(raw)
+    .filter((parts) => parts.length >= 3)
+    .map(([option, summary, implication]) => ({
+      option,
+      summary,
+      implication,
+    }))
+}
+
+function parseImpact(raw: string): ImpactCard[] {
+  return splitStructuredLines(raw)
+    .filter((parts) => parts.length >= 3)
+    .map(([group, impact, implication]) => ({
+      group,
+      impact,
+      implication,
+    }))
+}
+
+function parseDecisionTree(raw: string): DecisionBranch[] {
+  return splitStructuredLines(raw)
+    .filter((parts) => parts.length >= 3)
+    .map(([question, yes, no]) => ({
+      question,
+      yes,
+      no,
+    }))
+}
+
 function getInfographicDiscoveryPrompt() {
   return `You are helping an editor at Medianama or Reasoned.live decide what kind of infographic can be built from an article.
 
@@ -253,6 +344,7 @@ Analyze the article text provided after this prompt and identify which infograph
 - before / after
 - options / alternatives
 - impact on groups
+- decision tree
 - list / glossary
 - statistical infographic
 - venn / overlap
@@ -272,8 +364,8 @@ Return your answer in this structure:
    - what information is already available in the text
    - what information is missing
    - whether it is supported in the current InfoNama builder:
-     - supported now: timeline, sequence / how-it-works (use process), comparison, before / after (use comparison), options / alternatives (use comparison), impact on groups (use list or comparison depending structure), list, statistical
-     - not yet supported in product: venn, hierarchy, geographic, flow, network, annotated document, decision tree, myth vs fact
+     - supported now: timeline, sequence / how-it-works, comparison, before / after, options / alternatives, impact on groups, decision tree, list, statistical, venn / overlap
+     - not yet supported in product: hierarchy, geographic, flow, network, annotated document, myth vs fact
 4. Recommend the single best infographic type for immediate production in InfoNama.
 5. If statistical is recommended, list every quantitative fact or table-like value found in the article.
 6. If no good infographic is possible, say so clearly and explain why.
@@ -334,7 +426,7 @@ Rules:
 - provide at least 3 comparison rows if possible
 - each row should compare the same criterion across both sides
 - keep each cell compact and specific
-- this format can be used for side-by-side text, before/after, and alternatives/options`
+- use this when the article is fundamentally a side-by-side contrast rather than a pure before/after or options explainer`
     case 'process':
       return `${commonIntro}
 Choose the process format only if the article explains how something works step by step or describes an ordered sequence of events.
@@ -377,7 +469,109 @@ Rules:
 - provide at least 3 items if possible
 - terms should be scannable
 - explanations should be simple enough for a general reader
-- this format can also be used for "impact on citizens / startups / imports" style explainers`
+- use this for concepts, definitions, or scannable fact cards rather than branch logic or stakeholder impact matrices`
+    case 'overlap':
+      return `${commonIntro}
+Choose the venn/overlap format only if the article contains two sides with both shared and exclusive positions, obligations, interests, or claims.
+
+Return exactly this structure:
+TITLE: <headline>
+SUBTITLE: <subtitle>
+TAKEAWAY: <one-sentence takeaway>
+SOURCE: <source line>
+UPDATED_AT: <date string>
+
+OVERLAP_ZONES:
+left | title | detail
+overlap | title | detail
+right | title | detail
+
+Rules:
+- use exactly the zone names left, overlap, and right
+- keep titles short enough to sit inside a venn-style visual
+- details should explain what is unique or shared`
+    case 'before-after':
+      return `${commonIntro}
+Choose the before/after format only if the article clearly explains what changed between an earlier state and a later state.
+
+Return exactly this structure:
+TITLE: <headline>
+SUBTITLE: <subtitle>
+TAKEAWAY: <one-sentence takeaway>
+SOURCE: <source line>
+UPDATED_AT: <date string>
+LEFT_LABEL: Before
+RIGHT_LABEL: After
+
+COMPARISON_ROWS:
+criterion | before state | after state
+criterion | before state | after state
+criterion | before state | after state
+
+Rules:
+- provide at least 3 rows if possible
+- each row should isolate one meaningful change
+- use concise factual wording`
+    case 'options':
+      return `${commonIntro}
+Choose the options/alternatives format only if the article presents competing approaches, paths, or choices.
+
+Return exactly this structure:
+TITLE: <headline>
+SUBTITLE: <subtitle>
+TAKEAWAY: <one-sentence takeaway>
+SOURCE: <source line>
+UPDATED_AT: <date string>
+
+OPTION_CARDS:
+option name | summary | implication
+option name | summary | implication
+option name | summary | implication
+
+Rules:
+- provide at least 3 options if possible
+- summary should explain the choice
+- implication should state the tradeoff or likely effect`
+    case 'impact':
+      return `${commonIntro}
+Choose the impact format only if the article can be broken down by stakeholder group, sector, or constituency.
+
+Return exactly this structure:
+TITLE: <headline>
+SUBTITLE: <subtitle>
+TAKEAWAY: <one-sentence takeaway>
+SOURCE: <source line>
+UPDATED_AT: <date string>
+
+IMPACT_CARDS:
+group | impact | why it matters
+group | impact | why it matters
+group | impact | why it matters
+
+Rules:
+- provide at least 3 groups if possible
+- each row should name a distinct affected group
+- keep the impact line short and the implication line explanatory`
+    case 'decision-tree':
+      return `${commonIntro}
+Choose the decision tree format only if the article explains outcomes that depend on yes/no conditions or branching scenarios.
+
+Return exactly this structure:
+TITLE: <headline>
+SUBTITLE: <subtitle>
+TAKEAWAY: <one-sentence takeaway>
+SOURCE: <source line>
+UPDATED_AT: <date string>
+
+DECISION_BRANCHES:
+question | yes outcome | no outcome
+question | yes outcome | no outcome
+question | yes outcome | no outcome
+
+Rules:
+- provide at least 3 branches if possible
+- each question should be answerable with yes or no
+- outcomes should be short and specific`
     case 'statistical':
       return `${commonIntro}
 Choose the statistical format only if the article contains enough quantitative information for a chart or numerical explainer.
@@ -478,6 +672,11 @@ function App() {
   const [comparisonRaw, setComparisonRaw] = useState(comparisonSample)
   const [processRaw, setProcessRaw] = useState(processSample)
   const [listRaw, setListRaw] = useState(listSample)
+  const [overlapRaw, setOverlapRaw] = useState(overlapSample)
+  const [beforeAfterRaw, setBeforeAfterRaw] = useState(beforeAfterSample)
+  const [optionsRaw, setOptionsRaw] = useState(optionsSample)
+  const [impactRaw, setImpactRaw] = useState(impactSample)
+  const [decisionTreeRaw, setDecisionTreeRaw] = useState(decisionTreeSample)
   const [infoStatus, setInfoStatus] = useState(
     'InfoNama is ready. Choose a template, shape the explainer, and export a newsroom graphic.',
   )
@@ -528,17 +727,42 @@ function App() {
         return processRaw
       case 'list':
         return listRaw
+      case 'overlap':
+        return overlapRaw
+      case 'before-after':
+        return beforeAfterRaw
+      case 'options':
+        return optionsRaw
+      case 'impact':
+        return impactRaw
+      case 'decision-tree':
+        return decisionTreeRaw
       case 'statistical':
         return ''
       default:
         return ''
     }
-  }, [comparisonRaw, infoTemplate, listRaw, processRaw, timelineRaw])
+  }, [
+    beforeAfterRaw,
+    comparisonRaw,
+    decisionTreeRaw,
+    impactRaw,
+    infoTemplate,
+    listRaw,
+    optionsRaw,
+    overlapRaw,
+    processRaw,
+    timelineRaw,
+  ])
 
   const renderedTimeline = useMemo(() => parseTimeline(renderedInfo.raw), [renderedInfo.raw])
   const renderedComparison = useMemo(() => parseComparison(renderedInfo.raw), [renderedInfo.raw])
   const renderedProcess = useMemo(() => parseProcess(renderedInfo.raw), [renderedInfo.raw])
   const renderedGlossary = useMemo(() => parseGlossary(renderedInfo.raw), [renderedInfo.raw])
+  const renderedOverlap = useMemo(() => parseOverlap(renderedInfo.raw), [renderedInfo.raw])
+  const renderedOptions = useMemo(() => parseOptions(renderedInfo.raw), [renderedInfo.raw])
+  const renderedImpact = useMemo(() => parseImpact(renderedInfo.raw), [renderedInfo.raw])
+  const renderedDecisionTree = useMemo(() => parseDecisionTree(renderedInfo.raw), [renderedInfo.raw])
   const infographicDiscoveryPrompt = useMemo(() => getInfographicDiscoveryPrompt(), [])
   const extractionPrompt = useMemo(() => getExtractionPrompt(promptTemplate), [promptTemplate])
 
@@ -559,6 +783,16 @@ function App() {
         return 'Use: step title | detail'
       case 'list':
         return 'Use: term | explanation'
+      case 'overlap':
+        return 'Use: left | title | detail, overlap | title | detail, right | title | detail'
+      case 'before-after':
+        return 'Use: criterion | before | after'
+      case 'options':
+        return 'Use: option name | summary | implication'
+      case 'impact':
+        return 'Use: group | impact | why it matters'
+      case 'decision-tree':
+        return 'Use: question | yes outcome | no outcome'
       case 'statistical':
         return 'This mode uses the current chart and dataset.'
       default:
@@ -576,6 +810,16 @@ function App() {
         return ['At least 3 steps', 'Action-oriented step titles', 'Clear arrow-led order']
       case 'list':
         return ['At least 3 cards', 'Short explainers', 'Beginner-readable language']
+      case 'overlap':
+        return ['Use left / overlap / right zones', 'Exactly 3 overlap entries', 'Shared core made explicit']
+      case 'before-after':
+        return ['At least 3 change rows', 'Before and after states are distinct', 'Each row isolates one change']
+      case 'options':
+        return ['At least 3 options', 'Each option has a tradeoff', 'Implications are explicit']
+      case 'impact':
+        return ['At least 3 stakeholder groups', 'Impact line is concise', 'Why-it-matters line is specific']
+      case 'decision-tree':
+        return ['At least 3 decision points', 'Questions are yes/no', 'Outcomes are concrete']
       case 'statistical':
         return ['Current chart rendered', 'Takeaway sentence set', 'Source line present']
       default:
@@ -597,6 +841,21 @@ function App() {
       case 'list':
         setListRaw(value)
         return
+      case 'overlap':
+        setOverlapRaw(value)
+        return
+      case 'before-after':
+        setBeforeAfterRaw(value)
+        return
+      case 'options':
+        setOptionsRaw(value)
+        return
+      case 'impact':
+        setImpactRaw(value)
+        return
+      case 'decision-tree':
+        setDecisionTreeRaw(value)
+        return
       default:
         return
     }
@@ -605,6 +864,13 @@ function App() {
   function changeInfoTemplate(nextTemplate: InfoTemplate) {
     setInfoTemplate(nextTemplate)
     setPromptTemplate(nextTemplate)
+    if (nextTemplate === 'before-after') {
+      setInfoMeta((current) => ({
+        ...current,
+        leftLabel: 'Before',
+        rightLabel: 'After',
+      }))
+    }
   }
 
   async function copyPrompt(text: string) {
@@ -740,12 +1006,42 @@ function App() {
       return 'Comparison mode needs at least 3 comparison rows.'
     }
 
+    if (template === 'before-after' && parseComparison(raw).length < 3) {
+      return 'Before / After mode needs at least 3 comparison rows.'
+    }
+
     if (template === 'process' && parseProcess(raw).length < 3) {
       return 'Process mode needs at least 3 steps.'
     }
 
     if (template === 'list' && parseGlossary(raw).length < 3) {
       return 'List mode needs at least 3 cards.'
+    }
+
+    if (template === 'overlap') {
+      const zones = parseOverlap(raw)
+
+      if (zones.length < 3) {
+        return 'Venn / Overlap mode needs left, overlap, and right entries.'
+      }
+
+      const zoneNames = zones.map((zone) => zone.zone.toLowerCase())
+
+      if (!zoneNames.includes('left') || !zoneNames.includes('overlap') || !zoneNames.includes('right')) {
+        return 'Venn / Overlap mode requires left, overlap, and right zone labels.'
+      }
+    }
+
+    if (template === 'options' && parseOptions(raw).length < 3) {
+      return 'Options / Alternatives mode needs at least 3 options.'
+    }
+
+    if (template === 'impact' && parseImpact(raw).length < 3) {
+      return 'Impact On mode needs at least 3 stakeholder groups.'
+    }
+
+    if (template === 'decision-tree' && parseDecisionTree(raw).length < 3) {
+      return 'Decision Tree mode needs at least 3 decision branches.'
     }
 
     return ''
@@ -1079,13 +1375,13 @@ function App() {
   }
 
   function renderInfoWorkspace() {
-    const suggestedFormats = [
-      'Venn / overlap for shared and exclusive claims or obligations',
-      'Before / after for draft-versus-final or old-versus-new rules',
-      'Options / alternatives for competing policy or product paths',
-      'Impact on groups for citizens, startups, telecom operators, or importers',
-      'Decision tree for reader guidance when outcomes depend on conditions',
-      'Myth vs fact for contested public claims and evidence checks',
+    const nextFormats = [
+      'Hierarchy / policy stack for ministry, regulator, platform, and user layers',
+      'Flow infographic for money, data, or enforcement movement',
+      'Network / ecosystem map for actors and institutional links',
+      'Annotated document or screenshot explainer for clause-by-clause reading',
+      'Myth vs fact for claim-versus-evidence treatment',
+      'Geographic / regional views for state-by-state differences',
     ]
 
     return (
@@ -1154,7 +1450,7 @@ function App() {
               </div>
             </div>
 
-            {infoTemplate === 'comparison' && (
+            {(infoTemplate === 'comparison' || infoTemplate === 'before-after') && (
               <div className="info-meta-grid">
                 <div>
                   <label className="stack-label" htmlFor="info-left-label">
@@ -1235,12 +1531,14 @@ function App() {
                 <p>
                   <strong>Feature plan</strong>
                 </p>
-                <p>v1 ships timeline, comparison, process, list, and statistical explainers inside the same product shell.</p>
+                <p>
+                  InfoNama now ships reasoning-led templates for overlap, before/after, options, impact, and decision guidance alongside timeline, comparison, sequence, list, and statistical explainers.
+                </p>
               </div>
 
               <div className="info-checklist">
-                <h3>Strong next additions</h3>
-                {suggestedFormats.map((item) => (
+                <h3>Next additions</h3>
+                {nextFormats.map((item) => (
                   <p key={item}>{item}</p>
                 ))}
               </div>
@@ -1289,6 +1587,10 @@ function App() {
               comparisonRows={renderedComparison}
               processSteps={renderedProcess}
               glossaryItems={renderedGlossary}
+              overlapZones={renderedOverlap}
+              optionCards={renderedOptions}
+              impactCards={renderedImpact}
+              decisionBranches={renderedDecisionTree}
               dataset={renderedInfo.dataset}
               chartConfig={renderedInfo.chartConfig}
             />

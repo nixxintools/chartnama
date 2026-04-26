@@ -26,7 +26,17 @@ export type ChartConfig = {
 
 export type WorkspaceMode = 'chartnama' | 'infonama'
 
-export type InfoTemplate = 'timeline' | 'comparison' | 'process' | 'list' | 'statistical'
+export type InfoTemplate =
+  | 'timeline'
+  | 'comparison'
+  | 'process'
+  | 'list'
+  | 'statistical'
+  | 'overlap'
+  | 'before-after'
+  | 'options'
+  | 'impact'
+  | 'decision-tree'
 
 export type InfoMeta = {
   title: string
@@ -58,4 +68,28 @@ export type ProcessStep = {
 export type GlossaryItem = {
   term: string
   explanation: string
+}
+
+export type OverlapZone = {
+  zone: string
+  title: string
+  detail: string
+}
+
+export type OptionCard = {
+  option: string
+  summary: string
+  implication: string
+}
+
+export type ImpactCard = {
+  group: string
+  impact: string
+  implication: string
+}
+
+export type DecisionBranch = {
+  question: string
+  yes: string
+  no: string
 }

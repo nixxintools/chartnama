@@ -516,6 +516,10 @@ th {
 .timeline-item-card,
 .process-step-card,
 .glossary-card,
+.overlap-detail-card,
+.option-card,
+.impact-card,
+.decision-card,
 .comparison-grid-row,
 .comparison-grid-header,
 .statistical-lead {
@@ -573,6 +577,10 @@ th {
 .timeline-item-card p,
 .process-step-card p,
 .glossary-card p,
+.overlap-detail-card p,
+.option-card p,
+.impact-card p,
+.decision-branch p,
 .comparison-grid-row p,
 .info-stage-footer strong {
   margin: 0;
@@ -743,8 +751,125 @@ th {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.overlap-content,
+.decision-tree-content,
 .statistical-content {
   gap: 18px;
+}
+
+.overlap-visual {
+  position: relative;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+}
+
+.overlap-circle,
+.overlap-center {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border: 1px solid #efe7dc;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111111;
+}
+
+.overlap-circle {
+  width: 240px;
+  height: 240px;
+  border-radius: 999px;
+}
+
+.overlap-left {
+  left: 14%;
+  background: rgba(229, 57, 53, 0.08);
+}
+
+.overlap-right {
+  right: 14%;
+  background: rgba(17, 17, 17, 0.06);
+}
+
+.overlap-center {
+  z-index: 1;
+  width: 180px;
+  min-height: 110px;
+  padding: 16px;
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(17, 17, 17, 0.08);
+}
+
+.overlap-circle strong,
+.overlap-center strong {
+  max-width: 120px;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.overlap-detail-grid,
+.option-content,
+.impact-content {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.overlap-detail-card,
+.option-card,
+.impact-card,
+.decision-card {
+  display: grid;
+  gap: 10px;
+}
+
+.overlap-detail-card span,
+.option-card span,
+.impact-card span,
+.decision-question span,
+.decision-branch strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #70685d;
+}
+
+.overlap-detail-card h3,
+.option-card h3,
+.impact-card h3,
+.decision-question h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.option-card strong {
+  color: #e53935;
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+
+.decision-card {
+  border: 1px solid #efe7dc;
+}
+
+.decision-question {
+  display: grid;
+  gap: 8px;
+}
+
+.decision-branches {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.decision-branch {
+  padding: 16px;
+  border-radius: 20px;
+  background: #faf7f1;
 }
 
 .statistical-lead strong {
@@ -820,6 +945,10 @@ th {
   }
 
   .glossary-content,
+  .overlap-detail-grid,
+  .option-content,
+  .impact-content,
+  .decision-branches,
   .comparison-grid,
   .info-stage-footer,
   .prompt-grid {
@@ -828,6 +957,31 @@ th {
 
   .process-content.horizontal {
     grid-template-columns: 1fr;
+  }
+
+  .overlap-visual {
+    min-height: 420px;
+  }
+
+  .overlap-left,
+  .overlap-right {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+
+  .overlap-left {
+    top: 0;
+  }
+
+  .overlap-right {
+    top: 150px;
+  }
+
+  .overlap-center {
+    top: 115px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 }
 

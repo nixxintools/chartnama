@@ -3,9 +3,13 @@ import type {
   ChartConfig,
   ComparisonRow,
   Dataset,
+  DecisionBranch,
   GlossaryItem,
+  ImpactCard,
   InfoMeta,
   InfoTemplate,
+  OptionCard,
+  OverlapZone,
   ProcessStep,
   TimelineItem,
 } from './types'
@@ -17,6 +21,10 @@ type InfoStageProps = {
   comparisonRows: ComparisonRow[]
   processSteps: ProcessStep[]
   glossaryItems: GlossaryItem[]
+  overlapZones: OverlapZone[]
+  optionCards: OptionCard[]
+  impactCards: ImpactCard[]
+  decisionBranches: DecisionBranch[]
   dataset: Dataset
   chartConfig: ChartConfig
 }
@@ -31,7 +39,7 @@ function InfoHeader({ meta }: { meta: InfoMeta }) {
       {meta.subtitle ? <p className="info-stage-subtitle">{meta.subtitle}</p> : null}
       {meta.takeaway ? (
         <div className="info-stage-takeaway">
-        <p>{meta.takeaway}</p>
+          <p>{meta.takeaway}</p>
         </div>
       ) : null}
     </header>
@@ -123,6 +131,92 @@ function GlossaryStage({ items }: { items: GlossaryItem[] }) {
   )
 }
 
+function OverlapStage({ zones }: { zones: OverlapZone[] }) {
+  const left = zones.find((zone) => zone.zone.toLowerCase() === 'left')
+  const overlap = zones.find((zone) => zone.zone.toLowerCase() === 'overlap')
+  const right = zones.find((zone) => zone.zone.toLowerCase() === 'right')
+  const fallbackZones = zones.slice(0, 3)
+
+  return (
+    <section className="info-content overlap-content">
+      <div className="overlap-visual">
+        <div className="overlap-circle overlap-left">
+          <strong>{left?.title ?? fallbackZones[0]?.title ?? 'Left'}</strong>
+        </div>
+        <div className="overlap-circle overlap-right">
+          <strong>{right?.title ?? fallbackZones[2]?.title ?? 'Right'}</strong>
+        </div>
+        <div className="overlap-center">
+          <strong>{overlap?.title ?? fallbackZones[1]?.title ?? 'Shared'}</strong>
+        </div>
+      </div>
+      <div className="overlap-detail-grid">
+        {zones.map((zone, index) => (
+          <article key={`${zone.zone}-${index}`} className="overlap-detail-card">
+            <span>{zone.zone}</span>
+            <h3>{zone.title}</h3>
+            <p>{zone.detail}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function OptionStage({ items }: { items: OptionCard[] }) {
+  return (
+    <section className="info-content option-content">
+      {items.map((item, index) => (
+        <article key={`${item.option}-${index}`} className="option-card">
+          <span>Option {index + 1}</span>
+          <h3>{item.option}</h3>
+          <p>{item.summary}</p>
+          <strong>{item.implication}</strong>
+        </article>
+      ))}
+    </section>
+  )
+}
+
+function ImpactStage({ items }: { items: ImpactCard[] }) {
+  return (
+    <section className="info-content impact-content">
+      {items.map((item, index) => (
+        <article key={`${item.group}-${index}`} className="impact-card">
+          <span>{item.group}</span>
+          <h3>{item.impact}</h3>
+          <p>{item.implication}</p>
+        </article>
+      ))}
+    </section>
+  )
+}
+
+function DecisionTreeStage({ items }: { items: DecisionBranch[] }) {
+  return (
+    <section className="info-content decision-tree-content">
+      {items.map((item, index) => (
+        <article key={`${item.question}-${index}`} className="decision-card">
+          <div className="decision-question">
+            <span>Decision point {index + 1}</span>
+            <h3>{item.question}</h3>
+          </div>
+          <div className="decision-branches">
+            <div className="decision-branch">
+              <strong>Yes</strong>
+              <p>{item.yes}</p>
+            </div>
+            <div className="decision-branch">
+              <strong>No</strong>
+              <p>{item.no}</p>
+            </div>
+          </div>
+        </article>
+      ))}
+    </section>
+  )
+}
+
 function StatisticalStage({
   dataset,
   chartConfig,
@@ -152,6 +246,10 @@ export function InfoStage({
   comparisonRows,
   processSteps,
   glossaryItems,
+  overlapZones,
+  optionCards,
+  impactCards,
+  decisionBranches,
   dataset,
   chartConfig,
 }: InfoStageProps) {
@@ -160,11 +258,14 @@ export function InfoStage({
       <InfoHeader meta={meta} />
       {template === 'timeline' && <TimelineStage items={timelineItems} />}
       {template === 'comparison' && <ComparisonStage meta={meta} rows={comparisonRows} />}
+      {template === 'before-after' && <ComparisonStage meta={meta} rows={comparisonRows} />}
       {template === 'process' && <ProcessStage steps={processSteps} />}
       {template === 'list' && <GlossaryStage items={glossaryItems} />}
-      {template === 'statistical' && (
-        <StatisticalStage dataset={dataset} chartConfig={chartConfig} />
-      )}
+      {template === 'overlap' && <OverlapStage zones={overlapZones} />}
+      {template === 'options' && <OptionStage items={optionCards} />}
+      {template === 'impact' && <ImpactStage items={impactCards} />}
+      {template === 'decision-tree' && <DecisionTreeStage items={decisionBranches} />}
+      {template === 'statistical' && <StatisticalStage dataset={dataset} chartConfig={chartConfig} />}
       <InfoFooter meta={meta} />
     </section>
   )
