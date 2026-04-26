@@ -42,10 +42,10 @@ Data retention | 180 days | 90 days unless a regulator order applies
 Disclosures | Quarterly transparency note | Monthly dashboard with incident counts
 Enforcement | Civil penalty pathway | Mixed civil and licensing consequences`
 
-const processSample = `Receive complaint | User submits a formal complaint with supporting evidence.
-Classify issue | The team assigns the issue to policy, legal, or trust and safety review.
-Request clarification | Additional information is collected from the user or the platform.
-Publish outcome | The newsroom explains what changed, what did not, and why it matters.`
+const processSample = `Complaint filed | The user submits the complaint with screenshots, links, and supporting material.
+Issue classified | The platform or regulator sorts the issue into policy, legal, or operational review.
+Clarification sought | Missing facts are gathered from the user, company, or public documents.
+Outcome published | The final response explains what changed, what stays unresolved, and who is affected.`
 
 const listSample = `Intermediary | A platform or service that transmits or hosts user activity.
 Significant platform | A service that crosses a policy-defined scale threshold.
@@ -111,8 +111,8 @@ const infoTemplateOptions: Array<{
   },
   {
     value: 'process',
-    label: 'Process',
-    description: 'Step-by-step explainer for workflows and operational systems.',
+    label: 'Sequence / How It Works',
+    description: 'Arrow-led sequence for workflows, ordered events, and how-it-works explainers.',
   },
   {
     value: 'list',
@@ -248,10 +248,14 @@ function getInfographicDiscoveryPrompt() {
 
 Analyze the article text provided after this prompt and identify which infographic types are possible using this taxonomy:
 - timeline
-- comparison
-- process / how-it-works
+- sequence / how-it-works
+- comparison / side-by-side text
+- before / after
+- options / alternatives
+- impact on groups
 - list / glossary
 - statistical infographic
+- venn / overlap
 - hierarchy / policy stack
 - geographic / regional
 - flow infographic
@@ -268,8 +272,8 @@ Return your answer in this structure:
    - what information is already available in the text
    - what information is missing
    - whether it is supported in the current InfoNama builder:
-     - supported now: timeline, comparison, process, list, statistical
-     - not yet supported in product: hierarchy, geographic, flow, network, annotated document, decision tree, myth vs fact
+     - supported now: timeline, sequence / how-it-works (use process), comparison, before / after (use comparison), options / alternatives (use comparison), impact on groups (use list or comparison depending structure), list, statistical
+     - not yet supported in product: venn, hierarchy, geographic, flow, network, annotated document, decision tree, myth vs fact
 4. Recommend the single best infographic type for immediate production in InfoNama.
 5. If statistical is recommended, list every quantitative fact or table-like value found in the article.
 6. If no good infographic is possible, say so clearly and explain why.
@@ -308,9 +312,9 @@ Rules:
 - use short event titles
 - notes should explain why each event matters
 - preserve chronology`
-      case 'comparison':
+    case 'comparison':
       return `${commonIntro}
-Choose the comparison format only if the article clearly contrasts two states, versions, entities, approaches, or outcomes.
+Choose the comparison format only if the article clearly contrasts two states, versions, entities, approaches, options, or outcomes.
 
 Return exactly this structure:
 TITLE: <headline>
@@ -329,10 +333,11 @@ criterion | left side | right side
 Rules:
 - provide at least 3 comparison rows if possible
 - each row should compare the same criterion across both sides
-- keep each cell compact and specific`
+- keep each cell compact and specific
+- this format can be used for side-by-side text, before/after, and alternatives/options`
     case 'process':
       return `${commonIntro}
-Choose the process format only if the article explains how something works step by step.
+Choose the process format only if the article explains how something works step by step or describes an ordered sequence of events.
 
 Return exactly this structure:
 TITLE: <headline>
@@ -350,10 +355,11 @@ Rules:
 - provide at least 3 steps if possible
 - steps must be in logical order
 - titles should be action-oriented
-- details should explain what happens in that step`
+- details should explain what happens in that step
+- this format should work for arrow-based sequence explainers as well as operational workflows`
     case 'list':
       return `${commonIntro}
-Choose the list/glossary format only if the article is best summarized as key concepts, facts, or explainers.
+Choose the list/glossary format only if the article is best summarized as key concepts, facts, explainers, or stakeholder impacts.
 
 Return exactly this structure:
 TITLE: <headline>
@@ -370,7 +376,8 @@ term | explanation
 Rules:
 - provide at least 3 items if possible
 - terms should be scannable
-- explanations should be simple enough for a general reader`
+- explanations should be simple enough for a general reader
+- this format can also be used for "impact on citizens / startups / imports" style explainers`
     case 'statistical':
       return `${commonIntro}
 Choose the statistical format only if the article contains enough quantitative information for a chart or numerical explainer.
@@ -459,9 +466,9 @@ function App() {
 
   const [infoTemplate, setInfoTemplate] = useState<InfoTemplate>('timeline')
   const [infoMeta, setInfoMeta] = useState<InfoMeta>({
-    title: 'How the policy moved from draft to enforcement',
-    subtitle: 'A newsroom explainer template for policy, platforms, telecom, and digital markets.',
-    takeaway: 'Readers should be able to understand the sequence, tradeoffs, and final effect in one scan.',
+    title: 'How the draft rules changed before notification',
+    subtitle: 'From consultation to enforcement in four steps.',
+    takeaway: 'Industry feedback narrowed the proposal before the final rules came into force.',
     source: 'Medianama reporting, public filings, ministry notifications',
     updatedAt: 'April 26, 2026',
     leftLabel: 'Draft',
@@ -479,10 +486,9 @@ function App() {
   const [renderedInfo, setRenderedInfo] = useState<RenderedInfo>({
     template: 'timeline',
     meta: {
-      title: 'How the policy moved from draft to enforcement',
-      subtitle: 'A newsroom explainer template for policy, platforms, telecom, and digital markets.',
-      takeaway:
-        'Readers should be able to understand the sequence, tradeoffs, and final effect in one scan.',
+      title: 'How the draft rules changed before notification',
+      subtitle: 'From consultation to enforcement in four steps.',
+      takeaway: 'Industry feedback narrowed the proposal before the final rules came into force.',
       source: 'Medianama reporting, public filings, ministry notifications',
       updatedAt: 'April 26, 2026',
       leftLabel: 'Draft',
@@ -567,7 +573,7 @@ function App() {
       case 'comparison':
         return ['At least 3 rows', 'Clear left/right labels', 'Short row text']
       case 'process':
-        return ['At least 3 steps', 'Action-oriented step titles', 'One direction of flow']
+        return ['At least 3 steps', 'Action-oriented step titles', 'Clear arrow-led order']
       case 'list':
         return ['At least 3 cards', 'Short explainers', 'Beginner-readable language']
       case 'statistical':
@@ -1073,6 +1079,15 @@ function App() {
   }
 
   function renderInfoWorkspace() {
+    const suggestedFormats = [
+      'Venn / overlap for shared and exclusive claims or obligations',
+      'Before / after for draft-versus-final or old-versus-new rules',
+      'Options / alternatives for competing policy or product paths',
+      'Impact on groups for citizens, startups, telecom operators, or importers',
+      'Decision tree for reader guidance when outcomes depend on conditions',
+      'Myth vs fact for contested public claims and evidence checks',
+    ]
+
     return (
       <>
         <section className="workspace-grid info-grid">
@@ -1221,6 +1236,13 @@ function App() {
                   <strong>Feature plan</strong>
                 </p>
                 <p>v1 ships timeline, comparison, process, list, and statistical explainers inside the same product shell.</p>
+              </div>
+
+              <div className="info-checklist">
+                <h3>Strong next additions</h3>
+                {suggestedFormats.map((item) => (
+                  <p key={item}>{item}</p>
+                ))}
               </div>
             </div>
           </article>

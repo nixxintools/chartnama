@@ -24,15 +24,16 @@ type InfoStageProps = {
 function InfoHeader({ meta }: { meta: InfoMeta }) {
   return (
     <header className="info-stage-header">
-      <div>
-        <p className="info-stage-kicker">Medianama explainer</p>
+      <div className="info-stage-title-block">
         <h2>{meta.title}</h2>
+        <div className="info-stage-brand">MEDIANAMA</div>
       </div>
-      <p className="info-stage-subtitle">{meta.subtitle}</p>
-      <div className="info-stage-takeaway">
-        <strong>Takeaway</strong>
+      {meta.subtitle ? <p className="info-stage-subtitle">{meta.subtitle}</p> : null}
+      {meta.takeaway ? (
+        <div className="info-stage-takeaway">
         <p>{meta.takeaway}</p>
-      </div>
+        </div>
+      ) : null}
     </header>
   )
 }
@@ -48,7 +49,6 @@ function InfoFooter({ meta }: { meta: InfoMeta }) {
         <span>Updated</span>
         <strong>{meta.updatedAt}</strong>
       </div>
-      <div className="info-stage-brand">MEDIANAMA</div>
     </footer>
   )
 }
@@ -90,16 +90,21 @@ function ComparisonStage({ meta, rows }: { meta: InfoMeta; rows: ComparisonRow[]
 }
 
 function ProcessStage({ steps }: { steps: ProcessStep[] }) {
+  const layoutClass = steps.length <= 4 ? 'process-content horizontal' : 'process-content vertical'
+
   return (
-    <section className="info-content process-content">
+    <section className={`info-content ${layoutClass}`}>
       {steps.map((step, index) => (
-        <article key={`${step.title}-${index}`} className="process-step-card">
-          <div className="process-step-number">{index + 1}</div>
-          <div>
-            <h3>{step.title}</h3>
-            <p>{step.detail}</p>
-          </div>
-        </article>
+        <div key={`${step.title}-${index}`} className="process-sequence-item">
+          <article className="process-step-card">
+            <div className="process-step-number">{index + 1}</div>
+            <div>
+              <h3>{step.title}</h3>
+              <p>{step.detail}</p>
+            </div>
+          </article>
+          {index < steps.length - 1 ? <div className="sequence-arrow" aria-hidden="true" /> : null}
+        </div>
       ))}
     </section>
   )
