@@ -1057,13 +1057,49 @@ function App() {
     }
   }
 
+  function fallbackCopyText(text: string) {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.setAttribute('readonly', 'true')
+    textarea.style.position = 'fixed'
+    textarea.style.top = '-9999px'
+    textarea.style.left = '-9999px'
+    document.body.appendChild(textarea)
+    textarea.select()
+    textarea.setSelectionRange(0, text.length)
+
+    const didCopy = document.execCommand('copy')
+    document.body.removeChild(textarea)
+
+    if (!didCopy) {
+      throw new Error('Could not copy prompt.')
+    }
+  }
+
   async function copyPrompt(text: string) {
     try {
-      await navigator.clipboard.writeText(text)
+      if (window.isSecureContext && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text)
+      } else {
+        fallbackCopyText(text)
+      }
+
       setInfoStatus('Prompt copied to clipboard.')
       setInfoError('')
     } catch (caught) {
-      setInfoError(caught instanceof Error ? caught.message : 'Could not copy prompt.')
+      try {
+        fallbackCopyText(text)
+        setInfoStatus('Prompt copied to clipboard.')
+        setInfoError('')
+      } catch (fallbackError) {
+        setInfoError(
+          fallbackError instanceof Error
+            ? fallbackError.message
+            : caught instanceof Error
+              ? caught.message
+              : 'Could not copy prompt.',
+        )
+      }
     }
   }
 
