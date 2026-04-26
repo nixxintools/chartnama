@@ -3,6 +3,41 @@
   gap: 28px;
 }
 
+.workspace-tabs {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(420px, 100%);
+}
+
+.workspace-tab {
+  appearance: none;
+  border: 1px solid #d7cfc3;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #111111;
+  min-height: 48px;
+  padding: 12px 18px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.workspace-tab.active {
+  background: #111111;
+  color: #ffffff;
+  box-shadow: 0 14px 24px rgba(17, 17, 17, 0.12);
+}
+
+.workspace-tab:hover {
+  transform: translateY(-1px);
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1.8fr) minmax(260px, 0.95fr);
@@ -42,7 +77,8 @@
 .panel,
 .chart-panel,
 .action-bar,
-.summary-strip {
+.summary-strip,
+.info-stage {
   border: 1px solid #dfd8cf;
   border-radius: 28px;
   background:
@@ -165,11 +201,20 @@ select {
   line-height: 1.5;
 }
 
+.info-textarea {
+  min-height: 240px;
+}
+
+.info-textarea.compact {
+  min-height: 120px;
+}
+
 input:focus-visible,
 select:focus-visible,
 .data-textarea:focus-visible,
 .chip:focus-visible,
 .chart-option:focus-visible,
+.workspace-tab:focus-visible,
 .primary-button:focus-visible,
 .secondary-button:focus-visible,
 .upload-button:focus-visible {
@@ -352,6 +397,10 @@ th {
   padding: 20px;
 }
 
+.info-preview-shell {
+  overflow: auto;
+}
+
 .chart-stage-svg {
   width: 100%;
   height: auto;
@@ -436,6 +485,256 @@ th {
   font-size: 13px;
 }
 
+.info-grid {
+  align-items: start;
+}
+
+.prompt-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.info-meta-grid,
+.info-template-guidance {
+  display: grid;
+  gap: 14px;
+}
+
+.prompt-textarea {
+  min-height: 300px;
+}
+
+.info-stage {
+  padding: 36px;
+  display: grid;
+  gap: 28px;
+  min-width: 960px;
+}
+
+.info-stage-header,
+.info-stage-footer,
+.info-stage-takeaway,
+.timeline-item-card,
+.process-step-card,
+.glossary-card,
+.comparison-grid-row,
+.comparison-grid-header,
+.statistical-lead {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.info-stage-header {
+  display: grid;
+  gap: 18px;
+}
+
+.info-stage-kicker {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #70685d;
+}
+
+.info-stage-header h2 {
+  margin: 0;
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  line-height: 0.98;
+}
+
+.info-stage-subtitle {
+  font-size: 1.08rem;
+  line-height: 1.5;
+  color: #62594d;
+}
+
+.info-stage-takeaway {
+  padding: 18px 20px;
+  border: 1px solid #efe7dc;
+}
+
+.info-stage-takeaway strong,
+.info-stage-footer span,
+.statistical-lead span {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #70685d;
+}
+
+.info-stage-takeaway p,
+.timeline-item-card p,
+.process-step-card p,
+.glossary-card p,
+.comparison-grid-row p,
+.info-stage-footer strong {
+  margin: 8px 0 0;
+  line-height: 1.55;
+  color: #111111;
+}
+
+.info-content {
+  display: grid;
+  gap: 18px;
+}
+
+.timeline-content,
+.process-content,
+.glossary-content {
+  grid-template-columns: 1fr;
+}
+
+.timeline-item-card,
+.process-step-card,
+.glossary-card,
+.comparison-grid-row,
+.comparison-grid-header,
+.statistical-lead {
+  padding: 20px 22px;
+  border: 1px solid #efe7dc;
+}
+
+.timeline-item-card,
+.process-step-card {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.timeline-marker,
+.process-step-number {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #111111;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.timeline-date {
+  margin: 0;
+  color: #70685d;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.timeline-item-card h3,
+.process-step-card h3,
+.glossary-card h3 {
+  margin: 6px 0 0;
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+.comparison-content {
+  gap: 12px;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.1fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.comparison-grid-header {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #70685d;
+}
+
+.comparison-grid-row strong {
+  font-size: 1rem;
+  line-height: 1.35;
+  color: #111111;
+}
+
+.glossary-content {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.statistical-content {
+  gap: 18px;
+}
+
+.statistical-lead strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.1rem;
+  line-height: 1.45;
+  color: #111111;
+}
+
+.statistical-chart-shell {
+  border: 1px solid #efe7dc;
+  border-radius: 24px;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.info-stage-footer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: end;
+  padding-top: 8px;
+}
+
+.info-stage-footer strong {
+  font-size: 14px;
+}
+
+.info-stage-brand {
+  justify-self: end;
+  align-self: end;
+  color: #e53935;
+  font-family: 'Trebuchet MS', Trebuchet, Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.info-checklist {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 22px;
+  background: #faf7f1;
+}
+
+.info-checklist h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.info-checklist p {
+  margin: 0;
+  padding-left: 18px;
+  position: relative;
+  color: #111111;
+  line-height: 1.5;
+}
+
+.info-checklist p::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e53935;
+}
+
 @media (max-width: 1180px) {
   .workspace-grid {
     grid-template-columns: 1fr;
@@ -444,9 +743,21 @@ th {
   .hero {
     grid-template-columns: 1fr;
   }
+
+  .info-stage {
+    min-width: 0;
+  }
+
+  .glossary-content,
+  .comparison-grid,
+  .info-stage-footer,
+  .prompt-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 760px) {
+  .workspace-tabs,
   .input-mode-row,
   .chart-selector-grid,
   .action-row,
@@ -464,5 +775,9 @@ th {
 
   .action-row {
     display: grid;
+  }
+
+  .info-stage {
+    padding: 20px;
   }
 }

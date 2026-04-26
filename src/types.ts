@@ -23,3 +23,39 @@ export type ChartConfig = {
   xKey: string
   yKeys: string[]
 }
+
+export type WorkspaceMode = 'chartnama' | 'infonama'
+
+export type InfoTemplate = 'timeline' | 'comparison' | 'process' | 'list' | 'statistical'
+
+export type InfoMeta = {
+  title: string
+  subtitle: string
+  takeaway: string
+  source: string
+  updatedAt: string
+  leftLabel: string
+  rightLabel: string
+}
+
+export type TimelineItem = {
+  date: string
+  title: string
+  note: string
+}
+
+export type ComparisonRow = {
+  criterion: string
+  left: string
+  right: string
+}
+
+export type ProcessStep = {
+  title: string
+  detail: string
+}
+
+export type GlossaryItem = {
+  term: string
+  explanation: string
+}
