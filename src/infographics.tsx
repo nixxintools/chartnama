@@ -5,12 +5,14 @@ import type {
   Dataset,
   DecisionBranch,
   GlossaryItem,
+  HierarchyItem,
   ImpactCard,
   InfoMeta,
   InfoTemplate,
   OptionCard,
   OverlapZone,
   ProcessStep,
+  QuadrantPoint,
   TimelineItem,
 } from './types'
 
@@ -25,6 +27,9 @@ type InfoStageProps = {
   optionCards: OptionCard[]
   impactCards: ImpactCard[]
   decisionBranches: DecisionBranch[]
+  singleQuadrantPoints: QuadrantPoint[]
+  fourQuadrantPoints: QuadrantPoint[]
+  hierarchyItems: HierarchyItem[]
   dataset: Dataset
   chartConfig: ChartConfig
 }
@@ -217,6 +222,112 @@ function DecisionTreeStage({ items }: { items: DecisionBranch[] }) {
   )
 }
 
+function SingleQuadrantStage({
+  meta,
+  points,
+}: {
+  meta: InfoMeta
+  points: QuadrantPoint[]
+}) {
+  return (
+    <section className="info-content quadrant-content">
+      <div className="quadrant-shell single-quadrant-shell">
+        <span className="quadrant-label quadrant-left-label">{meta.leftLabel || 'Lower'}</span>
+        <span className="quadrant-label quadrant-right-label">{meta.rightLabel || 'Higher'}</span>
+        <span className="quadrant-label quadrant-top-label">{meta.topLabel || 'Higher'}</span>
+        <span className="quadrant-label quadrant-bottom-label">{meta.bottomLabel || 'Lower'}</span>
+        <div className="quadrant-axis quadrant-axis-x" />
+        <div className="quadrant-axis quadrant-axis-y" />
+        {points.map((point, index) => (
+          <div
+            key={`${point.label}-${index}`}
+            className="quadrant-point single-point"
+            style={{
+              left: `${Math.max(0, Math.min(100, point.x))}%`,
+              bottom: `${Math.max(0, Math.min(100, point.y))}%`,
+            }}
+          >
+            <div className="quadrant-dot" />
+            <div className="quadrant-point-card">
+              <strong>{point.label}</strong>
+              <p>{point.note}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function FourQuadrantStage({
+  meta,
+  points,
+}: {
+  meta: InfoMeta
+  points: QuadrantPoint[]
+}) {
+  return (
+    <section className="info-content quadrant-content">
+      <div className="quadrant-shell four-quadrant-shell">
+        <span className="quadrant-label quadrant-left-label">{meta.leftLabel || 'Lower'}</span>
+        <span className="quadrant-label quadrant-right-label">{meta.rightLabel || 'Higher'}</span>
+        <span className="quadrant-label quadrant-top-label">{meta.topLabel || 'Higher'}</span>
+        <span className="quadrant-label quadrant-bottom-label">{meta.bottomLabel || 'Lower'}</span>
+        <div className="quadrant-axis quadrant-axis-mid-x" />
+        <div className="quadrant-axis quadrant-axis-mid-y" />
+        {points.map((point, index) => (
+          <div
+            key={`${point.label}-${index}`}
+            className="quadrant-point four-point"
+            style={{
+              left: `${Math.max(0, Math.min(100, point.x))}%`,
+              bottom: `${Math.max(0, Math.min(100, point.y))}%`,
+            }}
+          >
+            <div className="quadrant-dot" />
+            <div className="quadrant-point-card">
+              <strong>{point.label}</strong>
+              <p>{point.note}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function HierarchyStage({ items }: { items: HierarchyItem[] }) {
+  const grouped = items.reduce<Array<{ level: string; entries: HierarchyItem[] }>>((acc, item) => {
+    const existing = acc.find((group) => group.level === item.level)
+
+    if (existing) {
+      existing.entries.push(item)
+      return acc
+    }
+
+    acc.push({ level: item.level, entries: [item] })
+    return acc
+  }, [])
+
+  return (
+    <section className="info-content hierarchy-content">
+      {grouped.map((group) => (
+        <div key={group.level} className="hierarchy-level">
+          <div className="hierarchy-level-label">{group.level}</div>
+          <div className="hierarchy-level-grid">
+            {group.entries.map((item, index) => (
+              <article key={`${item.title}-${index}`} className="hierarchy-card">
+                <h3>{item.title}</h3>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
+  )
+}
+
 function StatisticalStage({
   dataset,
   chartConfig,
@@ -250,6 +361,9 @@ export function InfoStage({
   optionCards,
   impactCards,
   decisionBranches,
+  singleQuadrantPoints,
+  fourQuadrantPoints,
+  hierarchyItems,
   dataset,
   chartConfig,
 }: InfoStageProps) {
@@ -265,6 +379,13 @@ export function InfoStage({
       {template === 'options' && <OptionStage items={optionCards} />}
       {template === 'impact' && <ImpactStage items={impactCards} />}
       {template === 'decision-tree' && <DecisionTreeStage items={decisionBranches} />}
+      {template === 'single-quadrant' && (
+        <SingleQuadrantStage meta={meta} points={singleQuadrantPoints} />
+      )}
+      {template === 'four-quadrant' && (
+        <FourQuadrantStage meta={meta} points={fourQuadrantPoints} />
+      )}
+      {template === 'hierarchy' && <HierarchyStage items={hierarchyItems} />}
       {template === 'statistical' && <StatisticalStage dataset={dataset} chartConfig={chartConfig} />}
       <InfoFooter meta={meta} />
     </section>

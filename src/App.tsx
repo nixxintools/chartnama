@@ -18,12 +18,14 @@ import type {
   Dataset,
   DecisionBranch,
   GlossaryItem,
+  HierarchyItem,
   ImpactCard,
   InfoMeta,
   InfoTemplate,
   OptionCard,
   OverlapZone,
   ProcessStep,
+  QuadrantPoint,
   TimelineItem,
   WorkspaceMode,
 } from './types'
@@ -77,6 +79,21 @@ Platforms | Tighter audit trail and response commitments | More operational proc
 const decisionTreeSample = `Does the service cross the threshold? | It falls into the higher-compliance bucket with additional filings. | It stays under the lighter baseline rules.
 Does it host user-generated content? | Moderation, takedown, and grievance rules become central. | The main obligations shift to transactional or disclosure rules.
 Is there a regulator order? | The platform must preserve records and respond within the defined timeline. | Standard retention and disclosure rules continue to apply.`
+
+const singleQuadrantSample = `Open internet model | 72 | 84 | Strong on access and interoperability.
+Closed super-app stack | 88 | 36 | High scale but weaker openness.
+Regulated public rails | 46 | 78 | Moderate scale with stronger accountability.
+Startup-friendly sandbox | 55 | 62 | Balanced path with room for iteration.`
+
+const fourQuadrantSample = `Legacy telecom model | 28 | 74 | Strong control but lower flexibility.
+Platform self-regulation | 76 | 24 | Fast-moving but lighter accountability.
+Threshold-based oversight | 68 | 67 | Higher scale with stronger enforceability.
+Public digital infrastructure | 38 | 58 | Stronger public-interest orientation at moderate scale.`
+
+const hierarchySample = `Ministry | Policy ministry | Sets the governing policy direction and statutory frame.
+Regulator | Sector regulator | Issues rules, compliance guidance, and enforcement orders.
+Platforms | Large intermediaries | Build the operational systems that implement the rules.
+Users | Citizens and businesses | Experience the practical effects of policy through products and services.`
 
 const chartOptions: Array<{
   value: ChartType
@@ -169,6 +186,21 @@ const infoTemplateOptions: Array<{
     value: 'decision-tree',
     label: 'Decision Tree',
     description: 'Conditional reader guidance when outcomes depend on yes/no branches.',
+  },
+  {
+    value: 'single-quadrant',
+    label: 'Single Quadrant',
+    description: 'Positive-only positioning map for comparing items on two upward dimensions.',
+  },
+  {
+    value: 'four-quadrant',
+    label: 'Four Quadrant',
+    description: '2x2 matrix for comparing items across opposing dimensions.',
+  },
+  {
+    value: 'hierarchy',
+    label: 'Hierarchy / Stack',
+    description: 'Layered structures for ministry-regulator-platform-user relationships and policy stacks.',
   },
   {
     value: 'statistical',
@@ -334,6 +366,28 @@ function parseDecisionTree(raw: string): DecisionBranch[] {
     }))
 }
 
+function parseQuadrant(raw: string): QuadrantPoint[] {
+  return splitStructuredLines(raw)
+    .filter((parts) => parts.length >= 4)
+    .map(([label, x, y, note]) => ({
+      label,
+      x: Number(x),
+      y: Number(y),
+      note,
+    }))
+    .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+}
+
+function parseHierarchy(raw: string): HierarchyItem[] {
+  return splitStructuredLines(raw)
+    .filter((parts) => parts.length >= 3)
+    .map(([level, title, detail]) => ({
+      level,
+      title,
+      detail,
+    }))
+}
+
 function getInfographicDiscoveryPrompt() {
   return `You are helping an editor at Medianama or Reasoned.live decide what kind of infographic can be built from an article.
 
@@ -345,10 +399,12 @@ Analyze the article text provided after this prompt and identify which infograph
 - options / alternatives
 - impact on groups
 - decision tree
+- single quadrant positioning map
+- four quadrant matrix
+- hierarchy / policy stack
 - list / glossary
 - statistical infographic
 - venn / overlap
-- hierarchy / policy stack
 - geographic / regional
 - flow infographic
 - network / ecosystem map
@@ -364,8 +420,8 @@ Return your answer in this structure:
    - what information is already available in the text
    - what information is missing
    - whether it is supported in the current InfoNama builder:
-     - supported now: timeline, sequence / how-it-works, comparison, before / after, options / alternatives, impact on groups, decision tree, list, statistical, venn / overlap
-     - not yet supported in product: hierarchy, geographic, flow, network, annotated document, myth vs fact
+     - supported now: timeline, sequence / how-it-works, comparison, before / after, options / alternatives, impact on groups, decision tree, single quadrant, four quadrant, hierarchy / policy stack, list, statistical, venn / overlap
+     - not yet supported in product: geographic, flow, network, annotated document, myth vs fact
 4. Recommend the single best infographic type for immediate production in InfoNama.
 5. If statistical is recommended, list every quantitative fact or table-like value found in the article.
 6. If no good infographic is possible, say so clearly and explain why.
@@ -572,6 +628,74 @@ Rules:
 - provide at least 3 branches if possible
 - each question should be answerable with yes or no
 - outcomes should be short and specific`
+    case 'single-quadrant':
+      return `${commonIntro}
+Choose the single quadrant format only if the article compares items on two positive dimensions where "more" on both axes is meaningful.
+
+Return exactly this structure:
+TITLE: <headline>
+SUBTITLE: <subtitle>
+TAKEAWAY: <one-sentence takeaway>
+SOURCE: <source line>
+UPDATED_AT: <date string>
+LEFT_LABEL: <lower x extreme>
+RIGHT_LABEL: <higher x extreme>
+BOTTOM_LABEL: <lower y extreme>
+TOP_LABEL: <higher y extreme>
+
+QUADRANT_POINTS:
+label | x value 0-100 | y value 0-100 | note
+label | x value 0-100 | y value 0-100 | note
+label | x value 0-100 | y value 0-100 | note
+
+Rules:
+- provide at least 3 points if possible
+- x and y must be numeric values between 0 and 100
+- use this only when both axes improve in the same upward/rightward direction`
+    case 'four-quadrant':
+      return `${commonIntro}
+Choose the four quadrant format only if the article compares items across two opposing dimensions in a 2x2 matrix.
+
+Return exactly this structure:
+TITLE: <headline>
+SUBTITLE: <subtitle>
+TAKEAWAY: <one-sentence takeaway>
+SOURCE: <source line>
+UPDATED_AT: <date string>
+LEFT_LABEL: <left-side x extreme>
+RIGHT_LABEL: <right-side x extreme>
+BOTTOM_LABEL: <bottom y extreme>
+TOP_LABEL: <top y extreme>
+
+QUADRANT_POINTS:
+label | x value 0-100 | y value 0-100 | note
+label | x value 0-100 | y value 0-100 | note
+label | x value 0-100 | y value 0-100 | note
+
+Rules:
+- provide at least 3 points if possible
+- x and y must be numeric values between 0 and 100
+- axis labels should describe meaningful opposing poles`
+    case 'hierarchy':
+      return `${commonIntro}
+Choose the hierarchy/policy stack format only if the article explains layers of authority, responsibility, or system structure.
+
+Return exactly this structure:
+TITLE: <headline>
+SUBTITLE: <subtitle>
+TAKEAWAY: <one-sentence takeaway>
+SOURCE: <source line>
+UPDATED_AT: <date string>
+
+HIERARCHY_ITEMS:
+level | title | detail
+level | title | detail
+level | title | detail
+
+Rules:
+- provide at least 3 hierarchy items if possible
+- levels should move from top authority or abstraction to lower operational layers
+- titles should be concise and the detail should explain the role of that layer`
     case 'statistical':
       return `${commonIntro}
 Choose the statistical format only if the article contains enough quantitative information for a chart or numerical explainer.
@@ -667,6 +791,8 @@ function App() {
     updatedAt: 'April 26, 2026',
     leftLabel: 'Draft',
     rightLabel: 'Final',
+    topLabel: 'Higher public value',
+    bottomLabel: 'Lower public value',
   })
   const [timelineRaw, setTimelineRaw] = useState(timelineSample)
   const [comparisonRaw, setComparisonRaw] = useState(comparisonSample)
@@ -677,6 +803,9 @@ function App() {
   const [optionsRaw, setOptionsRaw] = useState(optionsSample)
   const [impactRaw, setImpactRaw] = useState(impactSample)
   const [decisionTreeRaw, setDecisionTreeRaw] = useState(decisionTreeSample)
+  const [singleQuadrantRaw, setSingleQuadrantRaw] = useState(singleQuadrantSample)
+  const [fourQuadrantRaw, setFourQuadrantRaw] = useState(fourQuadrantSample)
+  const [hierarchyRaw, setHierarchyRaw] = useState(hierarchySample)
   const [infoStatus, setInfoStatus] = useState(
     'InfoNama is ready. Choose a template, shape the explainer, and export a newsroom graphic.',
   )
@@ -692,6 +821,8 @@ function App() {
       updatedAt: 'April 26, 2026',
       leftLabel: 'Draft',
       rightLabel: 'Final',
+      topLabel: 'Higher public value',
+      bottomLabel: 'Lower public value',
     },
     raw: timelineSample,
     dataset: sampleDataset,
@@ -737,6 +868,12 @@ function App() {
         return impactRaw
       case 'decision-tree':
         return decisionTreeRaw
+      case 'single-quadrant':
+        return singleQuadrantRaw
+      case 'four-quadrant':
+        return fourQuadrantRaw
+      case 'hierarchy':
+        return hierarchyRaw
       case 'statistical':
         return ''
       default:
@@ -746,12 +883,15 @@ function App() {
     beforeAfterRaw,
     comparisonRaw,
     decisionTreeRaw,
+    fourQuadrantRaw,
+    hierarchyRaw,
     impactRaw,
     infoTemplate,
     listRaw,
     optionsRaw,
     overlapRaw,
     processRaw,
+    singleQuadrantRaw,
     timelineRaw,
   ])
 
@@ -763,6 +903,9 @@ function App() {
   const renderedOptions = useMemo(() => parseOptions(renderedInfo.raw), [renderedInfo.raw])
   const renderedImpact = useMemo(() => parseImpact(renderedInfo.raw), [renderedInfo.raw])
   const renderedDecisionTree = useMemo(() => parseDecisionTree(renderedInfo.raw), [renderedInfo.raw])
+  const renderedSingleQuadrant = useMemo(() => parseQuadrant(renderedInfo.raw), [renderedInfo.raw])
+  const renderedFourQuadrant = useMemo(() => parseQuadrant(renderedInfo.raw), [renderedInfo.raw])
+  const renderedHierarchy = useMemo(() => parseHierarchy(renderedInfo.raw), [renderedInfo.raw])
   const infographicDiscoveryPrompt = useMemo(() => getInfographicDiscoveryPrompt(), [])
   const extractionPrompt = useMemo(() => getExtractionPrompt(promptTemplate), [promptTemplate])
 
@@ -793,6 +936,12 @@ function App() {
         return 'Use: group | impact | why it matters'
       case 'decision-tree':
         return 'Use: question | yes outcome | no outcome'
+      case 'single-quadrant':
+        return 'Use: label | x 0-100 | y 0-100 | note'
+      case 'four-quadrant':
+        return 'Use: label | x 0-100 | y 0-100 | note'
+      case 'hierarchy':
+        return 'Use: level | title | detail'
       case 'statistical':
         return 'This mode uses the current chart and dataset.'
       default:
@@ -820,6 +969,12 @@ function App() {
         return ['At least 3 stakeholder groups', 'Impact line is concise', 'Why-it-matters line is specific']
       case 'decision-tree':
         return ['At least 3 decision points', 'Questions are yes/no', 'Outcomes are concrete']
+      case 'single-quadrant':
+        return ['At least 3 plotted points', 'Both axes increase positively', 'Each point has a short note']
+      case 'four-quadrant':
+        return ['At least 3 plotted points', 'Axis poles are clearly named', 'Items are meaningfully distributed across the matrix']
+      case 'hierarchy':
+        return ['At least 3 hierarchy items', 'Top-to-bottom order is clear', 'Each layer explains a distinct role']
       case 'statistical':
         return ['Current chart rendered', 'Takeaway sentence set', 'Source line present']
       default:
@@ -856,6 +1011,15 @@ function App() {
       case 'decision-tree':
         setDecisionTreeRaw(value)
         return
+      case 'single-quadrant':
+        setSingleQuadrantRaw(value)
+        return
+      case 'four-quadrant':
+        setFourQuadrantRaw(value)
+        return
+      case 'hierarchy':
+        setHierarchyRaw(value)
+        return
       default:
         return
     }
@@ -869,6 +1033,26 @@ function App() {
         ...current,
         leftLabel: 'Before',
         rightLabel: 'After',
+      }))
+    }
+
+    if (nextTemplate === 'single-quadrant') {
+      setInfoMeta((current) => ({
+        ...current,
+        leftLabel: 'Lower scale',
+        rightLabel: 'Higher scale',
+        bottomLabel: 'Lower public value',
+        topLabel: 'Higher public value',
+      }))
+    }
+
+    if (nextTemplate === 'four-quadrant') {
+      setInfoMeta((current) => ({
+        ...current,
+        leftLabel: 'Lower control',
+        rightLabel: 'Higher control',
+        bottomLabel: 'Lower accountability',
+        topLabel: 'Higher accountability',
       }))
     }
   }
@@ -1042,6 +1226,18 @@ function App() {
 
     if (template === 'decision-tree' && parseDecisionTree(raw).length < 3) {
       return 'Decision Tree mode needs at least 3 decision branches.'
+    }
+
+    if (template === 'single-quadrant' && parseQuadrant(raw).length < 3) {
+      return 'Single Quadrant mode needs at least 3 plotted points.'
+    }
+
+    if (template === 'four-quadrant' && parseQuadrant(raw).length < 3) {
+      return 'Four Quadrant mode needs at least 3 plotted points.'
+    }
+
+    if (template === 'hierarchy' && parseHierarchy(raw).length < 3) {
+      return 'Hierarchy / Stack mode needs at least 3 hierarchy items.'
     }
 
     return ''
@@ -1376,7 +1572,6 @@ function App() {
 
   function renderInfoWorkspace() {
     const nextFormats = [
-      'Hierarchy / policy stack for ministry, regulator, platform, and user layers',
       'Flow infographic for money, data, or enforcement movement',
       'Network / ecosystem map for actors and institutional links',
       'Annotated document or screenshot explainer for clause-by-clause reading',
@@ -1475,6 +1670,56 @@ function App() {
               </div>
             )}
 
+            {(infoTemplate === 'single-quadrant' || infoTemplate === 'four-quadrant') && (
+              <>
+                <div className="info-meta-grid">
+                  <div>
+                    <label className="stack-label" htmlFor="info-left-label">
+                      Left axis label
+                    </label>
+                    <input
+                      id="info-left-label"
+                      value={infoMeta.leftLabel}
+                      onChange={(event) => updateInfoMeta('leftLabel', event.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="stack-label" htmlFor="info-right-label">
+                      Right axis label
+                    </label>
+                    <input
+                      id="info-right-label"
+                      value={infoMeta.rightLabel}
+                      onChange={(event) => updateInfoMeta('rightLabel', event.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="info-meta-grid">
+                  <div>
+                    <label className="stack-label" htmlFor="info-bottom-label">
+                      Bottom axis label
+                    </label>
+                    <input
+                      id="info-bottom-label"
+                      value={infoMeta.bottomLabel}
+                      onChange={(event) => updateInfoMeta('bottomLabel', event.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="stack-label" htmlFor="info-top-label">
+                      Top axis label
+                    </label>
+                    <input
+                      id="info-top-label"
+                      value={infoMeta.topLabel}
+                      onChange={(event) => updateInfoMeta('topLabel', event.target.value)}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
             {infoTemplate !== 'statistical' ? (
               <div className="input-stack">
                 <label className="stack-label" htmlFor="info-raw">
@@ -1532,7 +1777,7 @@ function App() {
                   <strong>Feature plan</strong>
                 </p>
                 <p>
-                  InfoNama now ships reasoning-led templates for overlap, before/after, options, impact, and decision guidance alongside timeline, comparison, sequence, list, and statistical explainers.
+                  InfoNama now ships reasoning-led templates for overlap, before/after, options, impact, decision guidance, quadrants, and hierarchy alongside timeline, comparison, sequence, list, and statistical explainers.
                 </p>
               </div>
 
@@ -1591,6 +1836,9 @@ function App() {
               optionCards={renderedOptions}
               impactCards={renderedImpact}
               decisionBranches={renderedDecisionTree}
+              singleQuadrantPoints={renderedSingleQuadrant}
+              fourQuadrantPoints={renderedFourQuadrant}
+              hierarchyItems={renderedHierarchy}
               dataset={renderedInfo.dataset}
               chartConfig={renderedInfo.chartConfig}
             />

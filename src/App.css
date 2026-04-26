@@ -520,6 +520,7 @@ th {
 .option-card,
 .impact-card,
 .decision-card,
+.hierarchy-card,
 .comparison-grid-row,
 .comparison-grid-header,
 .statistical-lead {
@@ -752,9 +753,182 @@ th {
 }
 
 .overlap-content,
+.quadrant-content,
+.hierarchy-content,
 .decision-tree-content,
 .statistical-content {
   gap: 18px;
+}
+
+.quadrant-shell {
+  position: relative;
+  min-height: 440px;
+  padding: 42px 36px 54px;
+  border: 1px solid #efe7dc;
+  border-radius: 28px;
+  background: #ffffff;
+}
+
+.single-quadrant-shell {
+  background:
+    linear-gradient(180deg, rgba(229, 57, 53, 0.03), rgba(255, 255, 255, 0.96)),
+    #ffffff;
+}
+
+.four-quadrant-shell {
+  background:
+    linear-gradient(90deg, rgba(229, 57, 53, 0.03) 0 50%, rgba(17, 17, 17, 0.03) 50% 100%),
+    linear-gradient(180deg, rgba(229, 57, 53, 0.03) 0 50%, rgba(17, 17, 17, 0.03) 50% 100%),
+    #ffffff;
+}
+
+.quadrant-label {
+  position: absolute;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #70685d;
+}
+
+.quadrant-left-label {
+  left: 16px;
+  bottom: 14px;
+}
+
+.quadrant-right-label {
+  right: 16px;
+  bottom: 14px;
+}
+
+.quadrant-top-label {
+  top: 14px;
+  right: 16px;
+}
+
+.quadrant-bottom-label {
+  bottom: 14px;
+  left: 16px;
+  transform: translateY(24px);
+}
+
+.quadrant-axis {
+  position: absolute;
+  background: #111111;
+}
+
+.quadrant-axis-x {
+  left: 36px;
+  right: 36px;
+  bottom: 36px;
+  height: 2px;
+}
+
+.quadrant-axis-y {
+  left: 36px;
+  bottom: 36px;
+  top: 36px;
+  width: 2px;
+}
+
+.quadrant-axis-mid-x {
+  left: 36px;
+  right: 36px;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-1px);
+}
+
+.quadrant-axis-mid-y {
+  top: 36px;
+  bottom: 36px;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-1px);
+}
+
+.quadrant-point {
+  position: absolute;
+  z-index: 1;
+  width: 0;
+  height: 0;
+}
+
+.single-point {
+  transform: translate(-8px, 8px);
+}
+
+.four-point {
+  transform: translate(-8px, 8px);
+}
+
+.quadrant-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #e53935;
+  box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.12);
+}
+
+.quadrant-point-card {
+  margin-top: 10px;
+  margin-left: 6px;
+  width: 160px;
+  padding: 12px 14px;
+  border: 1px solid #efe7dc;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 24px rgba(17, 17, 17, 0.06);
+}
+
+.quadrant-point-card strong {
+  display: block;
+  font-size: 0.98rem;
+  line-height: 1.2;
+  color: #111111;
+}
+
+.quadrant-point-card p {
+  margin: 6px 0 0;
+  line-height: 1.45;
+  color: #111111;
+}
+
+.hierarchy-content {
+  display: grid;
+}
+
+.hierarchy-level {
+  display: grid;
+  gap: 14px;
+}
+
+.hierarchy-level-label {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: #111111;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  justify-self: start;
+}
+
+.hierarchy-level-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.hierarchy-card {
+  border: 1px solid #efe7dc;
+}
+
+.hierarchy-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.2;
 }
 
 .overlap-visual {
@@ -982,6 +1156,15 @@ th {
     top: 115px;
     left: 50%;
     transform: translateX(-50%);
+  }
+
+  .quadrant-shell {
+    min-height: 520px;
+    padding: 58px 18px 62px;
+  }
+
+  .quadrant-point-card {
+    width: 132px;
   }
 }
 

@@ -37,6 +37,9 @@ export type InfoTemplate =
   | 'options'
   | 'impact'
   | 'decision-tree'
+  | 'single-quadrant'
+  | 'four-quadrant'
+  | 'hierarchy'
 
 export type InfoMeta = {
   title: string
@@ -46,6 +49,8 @@ export type InfoMeta = {
   updatedAt: string
   leftLabel: string
   rightLabel: string
+  topLabel: string
+  bottomLabel: string
 }
 
 export type TimelineItem = {
@@ -92,4 +97,17 @@ export type DecisionBranch = {
   question: string
   yes: string
   no: string
+}
+
+export type QuadrantPoint = {
+  label: string
+  x: number
+  y: number
+  note: string
+}
+
+export type HierarchyItem = {
+  level: string
+  title: string
+  detail: string
 }
