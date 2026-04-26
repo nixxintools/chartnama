@@ -353,7 +353,7 @@ Analyze the article text provided after this prompt and identify which infograph
 - flow infographic
 - network / ecosystem map
 - annotated document / screenshot
-- decision tree / reader guide
+- reader guide
 - myth vs fact / claim vs evidence
 
 Return your answer in this structure:
@@ -1706,8 +1706,8 @@ function App() {
           <h1>Editorial visuals for charts and explainers.</h1>
         </div>
         <p className="hero-copy">
-          Build single-chart exports in ChartNama or switch to InfoNama for timelines, comparisons, process diagrams,
-          glossary explainers, and statistical editorial layouts.
+          Build single-chart exports in ChartNama or switch to InfoNama for timelines, overlap maps, before/after frames,
+          options, impact explainers, decision trees, and statistical editorial layouts.
         </p>
       </header>
 
